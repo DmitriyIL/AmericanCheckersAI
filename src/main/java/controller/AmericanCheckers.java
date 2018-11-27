@@ -35,26 +35,47 @@
 
 package controller;
 
-import view.CheckersWindow;
+import model.Player;
+import view.MainFrame;
 
 import javax.swing.*;
 
 public class AmericanCheckers {
 
+	private Player blackPlayer;
+	private Player whitePlayer;
+
+	private MainFrame mainFrame;
+
 	public static void main(String[] args) {
-		SwingUtilities.invokeLater(AmericanCheckers::new);
+	    new AmericanCheckers();
 	}
 
-	AmericanCheckers() {
+	private AmericanCheckers() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		SwingUtilities.invokeLater(() -> mainFrame = new MainFrame(AmericanCheckers.this));
 
-		// Create a window to display the checkers game
-		CheckersWindow window = new CheckersWindow();
-		window.setDefaultCloseOperation(CheckersWindow.EXIT_ON_CLOSE);
-		window.setVisible(true);
+		blackPlayer = PlayerType.HUMAN.getPlayer();
+		whitePlayer = PlayerType.HUMAN.getPlayer();
+	}
+
+	public Player getBlackPlayer() {
+		return blackPlayer;
+	}
+
+	public Player getWhitePlayer() {
+		return whitePlayer;
+	}
+
+	public void setBlackPlayer(Player blackPlayer) {
+		this.blackPlayer = blackPlayer;
+	}
+
+	public void setWhitePlayer(Player wightPlayer) {
+		this.whitePlayer = wightPlayer;
 	}
 }

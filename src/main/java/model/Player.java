@@ -7,6 +7,8 @@ package model;
  */
 public interface Player {
 
+
+
 	/**
 	 * Determines how the game is updated. If true, the user must interact with
 	 * the user interface to make a move. Otherwise, the game is updated via
@@ -24,6 +26,8 @@ public interface Player {
 	 * @param game	the game to update.
 	 */
 	void updateGame(Game game);
+
+	//String getPlayerName();
 	
 	/*@Override
 	public String toString() {

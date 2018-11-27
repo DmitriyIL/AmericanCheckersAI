@@ -26,13 +26,13 @@ import model.HumanPlayer;
 import model.Player;
 
 /**
- * The {@code CheckerBoard} class is a graphical user interface component that
+ * The {@code ClickableBoard} class is a graphical user interface component that
  * is capable of drawing any checkers game state. It also handles player turns.
  * For human players, this means interacting with and selecting tiles on the
  * checker board. For non-human players, this means using the ai implemented
  * by the specified player object itself is used.
  */
-public class CheckerBoard extends JButton {
+public class ClickableBoard extends JButton {
     /**
      * The amount of milliseconds before a computer player takes a move.
      */
@@ -46,18 +46,18 @@ public class CheckerBoard extends JButton {
 
     private Game game;
 
-    private CheckersWindow window;
+    private MainFrame mainFrame;
 
-    private Player player1;
-    private Player player2;
+    private Player blackPlayer;
+    private Player whitePlayer;
 
     /**
-     * The last point that the current player selected on the checker board.
+     * The last point that the current player have clicked on the checker board.
      */
-    private Point selected;
+    private Point clicked;
 
     /**
-     * The flag to determine the color of the selected tile. If the selection
+     * The flag to determine the color of the clicked tile. If the selection
      * is valid - a green color, otherwise - a red.
      */
     private boolean selectionValid;
@@ -69,11 +69,11 @@ public class CheckerBoard extends JButton {
      */
     private Timer timer;
 
-    public CheckerBoard(CheckersWindow window) {
-        this(window, new Game(), null, null);
+    public ClickableBoard(MainFrame mainFrame) {
+        this(mainFrame, new Game(), null, null);
     }
 
-    public CheckerBoard(CheckersWindow window, Game game, Player player1, Player player2) {
+    public ClickableBoard(MainFrame mainFrame, Game game, Player blackPlayer, Player whitePlayer) {
 
         // Setup the component
         super.setFocusPainted(false);
@@ -83,9 +83,9 @@ public class CheckerBoard extends JButton {
 
         // Setup the game
         this.game = (game == null) ? new Game() : game;
-        this.window = window;
-        setPlayer1(player1);
-        setPlayer2(player2);
+        this.mainFrame = mainFrame;
+        setBlackPlayer(blackPlayer);
+        setWhitePlayer(whitePlayer);
     }
 
     /**
@@ -160,11 +160,11 @@ public class CheckerBoard extends JButton {
             }
         }
 
-        // Highlight the selected tile if valid
-        if (Board.isValidPoint(selected)) {
+        // Highlight the clicked tile if valid
+        if (Board.isValidPoint(clicked)) {
             g.setColor(selectionValid ? Color.GREEN : Color.RED);
-            g.fillRect(OFFSET_X + selected.x * BOX_SIZE,
-                    OFFSET_Y + selected.y * BOX_SIZE,
+            g.fillRect(OFFSET_X + clicked.x * BOX_SIZE,
+                    OFFSET_Y + clicked.y * BOX_SIZE,
                     BOX_SIZE, BOX_SIZE);
         }
 
@@ -272,27 +272,27 @@ public class CheckerBoard extends JButton {
         return game;
     }
 
-    public void setPlayer1(Player player1) {
-        this.player1 = (player1 == null) ? new HumanPlayer() : player1;
-        if (game.isP1Turn() && !this.player1.isHuman()) {
-            this.selected = null;
+    public void setBlackPlayer(Player blackPlayer) {
+        this.blackPlayer = (blackPlayer == null) ? new HumanPlayer() : blackPlayer;
+        if (game.isP1Turn() && !this.blackPlayer.isHuman()) {
+            this.clicked = null;
         }
     }
 
-    public void setPlayer2(Player player2) {
-        this.player2 = (player2 == null) ? new HumanPlayer() : player2;
-        if (!game.isP1Turn() && !this.player2.isHuman()) {
-            this.selected = null;
+    public void setWhitePlayer(Player whitePlayer) {
+        this.whitePlayer = (whitePlayer == null) ? new HumanPlayer() : whitePlayer;
+        if (!game.isP1Turn() && !this.whitePlayer.isHuman()) {
+            this.clicked = null;
         }
     }
 
     public Player getCurrentPlayer() {
-        return game.isP1Turn() ? player1 : player2;
+        return game.isP1Turn() ? blackPlayer : whitePlayer;
     }
 
     /**
      * Handles a click on this component at the specified point. If the current
-     * player is not human, this method does nothing. Otherwise, the selected
+     * player is not human, this method does nothing. Otherwise, the clicked
      * point is updated and a move is attempted if the last click and this one
      * both are on black tiles.
      *
@@ -302,7 +302,7 @@ public class CheckerBoard extends JButton {
     private void handleClick(int x, int y) {
         Game copy = game.copy();
 
-        // Determine what square (if any) was selected
+        // Determine what square (if any) was clicked
         final int W = getWidth(), H = getHeight();
         final int DIM = W < H ? W : H, BOX_SIZE = (DIM - 2 * PADDING) / 8;
         final int OFFSET_X = (W - BOX_SIZE * 8) / 2;
@@ -312,32 +312,32 @@ public class CheckerBoard extends JButton {
         Point sel = new Point(x, y);
 
         // Determine if a move should be attempted
-        if (Board.isValidPoint(sel) && Board.isValidPoint(selected)) {
+        if (Board.isValidPoint(sel) && Board.isValidPoint(clicked)) {
             boolean change = copy.isP1Turn();
             String expected = copy.getGameState();
-            boolean move = copy.makeMove(selected, sel);
+            boolean move = copy.makeMove(clicked, sel);
             boolean updated = (move && setGameState(true, copy.getGameState(), expected));
             change = (copy.isP1Turn() != change);
-            this.selected = change ? null : sel;
+            this.clicked = change ? null : sel;
         } else {
-            this.selected = sel;
+            this.clicked = sel;
         }
 
         // Check if the selection is valid
         this.selectionValid = isValidSelection(
-                copy.getBoard(), copy.isP1Turn(), selected);
+                copy.getBoard(), copy.isP1Turn(), clicked);
 
         update();
     }
 
     /**
-     * Checks if a selected point is valid in the context of the current
+     * Checks if a clicked point is valid in the context of the current
      * player's turn.
      *
      * @param board    the current board.
      * @param isP1Turn the flag indicating if it is player 1's turn.
      * @param selected the point to test.
-     * @return true if and only if the selected point is a checker that would
+     * @return true if and only if the clicked point is a checker that would
      * be allowed to make a move in the current turn.
      */
     private boolean isValidSelection(Board board, boolean isP1Turn, Point selected) {
@@ -381,7 +381,7 @@ public class CheckerBoard extends JButton {
         public void actionPerformed(ActionEvent e) {
 
             // Get the new mouse coordinates and handle the click
-            Point m = CheckerBoard.this.getMousePosition();
+            Point m = ClickableBoard.this.getMousePosition();
             if (m != null) {
                 handleClick(m.x, m.y);
             }
